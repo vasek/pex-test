@@ -1,0 +1,11 @@
+{
+  "name": "pex-test",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "immutable": "^4.0.0-rc.12",
+    "mocha": "^5.2.0"
+  }
+}
