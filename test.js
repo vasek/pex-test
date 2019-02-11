@@ -1,8 +1,35 @@
 const Immutable = require('immutable');
 const assert = require('assert');
 
-function transformErrors() {
-  return Immutable.Map();
+/**
+ * @param {Immutable.Map|Immutable.List} errors
+ */
+function transformNestedErrors(errors) {
+  return Immutable.Map.isMap(errors) || errors.some(err => typeof err !== 'string')
+    ? errors.map(transformNestedErrors)
+    : concatUniqueErrors(errors);
+}
+
+/**
+ * @param {Immutable.List} errors
+ */
+function concatUniqueErrors(errors) {
+  return (
+    errors
+      .toSet()
+      .toList()
+      .join('. ') + '.'
+  );
+}
+
+/**
+ * @param {Immutable.Map} errors
+ * @param {string[]} preserveNested
+ */
+function transformErrors(errors, preserveNested = []) {
+  return errors.map((value, key) =>
+    preserveNested.includes(key) ? transformNestedErrors(value) : concatUniqueErrors(value.flatten())
+  );
 }
 
 it('should tranform errors', () => {
@@ -48,7 +75,7 @@ it('should tranform errors', () => {
   // in this specific case,
   // errors for `url` and `urls` keys should be nested
   // see expected object below
-  const result = transformErrors();
+  const result = transformErrors(errors, ['url', 'urls']);
 
   assert.deepEqual(result.toJS(), {
     name: 'This field is required.',
